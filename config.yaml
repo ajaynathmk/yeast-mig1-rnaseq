@@ -1,0 +1,37 @@
+# ------------------------------------------------------------------
+# Project configuration. Change the gene here, not in the code.
+# ------------------------------------------------------------------
+
+# Sample sheet produced by scripts/build_metadata.py (then checked by hand)
+samples: "metadata/samples.tsv"
+
+# --- Experiment design -------------------------------------------------
+# Systematic name (Ensembl gene_id) of the deleted gene. MIG1 = YGL035C.
+# Other deletions in the same study: SIN3 YOL004W, SRB2 YHR041C, RIC1 YLR039C.
+# Always confirm the systematic name on yeastgenome.org (SGD).
+target_gene_id: "YGL035C"
+target_gene_name: "MIG1"
+
+# Values of the `condition` column in samples.tsv
+reference_level: "WT"
+contrast_level: "KO"
+
+# --- Library properties -------------------------------------------------
+# 0 = unstranded, 1 = forward-stranded, 2 = reverse-stranded (dUTP / TruSeq Stranded).
+# Do NOT guess: run scripts/check_strandedness.sh on one BAM and pick the best value.
+strandedness: 2
+paired_end: false
+
+# --- Reference: S. cerevisiae R64-1-1 (Ensembl Genomes, fungi) ---------------
+# If these URLs have moved, take R64-1-1 FASTA + GTF from Ensembl or SGD instead.
+genome_url: "https://ftp.ensemblgenomes.org/pub/fungi/release-56/fasta/saccharomyces_cerevisiae/dna/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.fa.gz"
+gtf_url: "https://ftp.ensemblgenomes.org/pub/fungi/release-56/gtf/saccharomyces_cerevisiae/Saccharomyces_cerevisiae.R64-1-1.56.gtf.gz"
+
+# STAR index settings
+sjdb_overhang: 100          # read length - 1; 100 works well for most read lengths
+star_sa_index_nbases: 10    # min(14, log2(genome length)/2 - 1) -> 10 for the 12 Mb yeast genome
+
+# --- Differential expression thresholds ------------------------------------
+padj_cutoff: 0.05
+lfc_cutoff: 1               # applied to the shrunken log2 fold change
+min_count: 10               # genes with fewer total reads across all samples are dropped
