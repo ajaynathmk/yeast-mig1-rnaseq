@@ -1,0 +1,5 @@
+]633;E;printf 'run_accession\\tsample\\tcondition\\treplicate\\tfastq_ftp\\n';d19b67a4-a5a0-4440-8686-d1e5706f58cc]633;Crun_accession	sample	condition	replicate	fastq_ftp
+SRR6108783	mig1	KO	1	ftp.sra.ebi.ac.uk/vol1/fastq/SRR610/003/SRR6108783/SRR6108783_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR610/003/SRR6108783/SRR6108783_2.fastq.gz
+SRR6108784	mig1	KO	2	ftp.sra.ebi.ac.uk/vol1/fastq/SRR610/004/SRR6108784/SRR6108784_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR610/004/SRR6108784/SRR6108784_2.fastq.gz
+SRR6108775	ScY01a	WT	1	ftp.sra.ebi.ac.uk/vol1/fastq/SRR610/005/SRR6108775/SRR6108775_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR610/005/SRR6108775/SRR6108775_2.fastq.gz
+SRR6108776	ScY01a	WT	2	ftp.sra.ebi.ac.uk/vol1/fastq/SRR610/006/SRR6108776/SRR6108776_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR610/006/SRR6108776/SRR6108776_2.fastq.gz
