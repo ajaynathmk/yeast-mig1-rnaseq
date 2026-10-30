@@ -1,22 +1,9 @@
-# Large / regenerable data - never commit these
 data/raw/
 data/reference/
 results/star/
 *.bam
-*.bai
-*.fastq
 *.fastq.gz
 *.fa
 *.gtf
-
-# Snakemake / logs
 .snakemake/
 logs/
-
-# R / Python / OS
-.Rhistory
-.RData
-.Rproj.user/
-__pycache__/
-*.pyc
-.DS_Store
