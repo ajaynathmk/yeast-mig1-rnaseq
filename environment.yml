@@ -1,25 +1,24 @@
 name: yeast-rnaseq
 channels:
-  - conda-forge
   - bioconda
+  - conda-forge
 dependencies:
-  - python=3.11
-  - pandas
-  - requests
-  - snakemake=7.32.4
-  - pulp=2.7.0
+  - bioconductor-apeglm
+  - bioconductor-deseq2
   - fastqc
   - multiqc
-  - star
-  - subread
-  - samtools
-  - wget
+  - pandas
+  - pulp=2.7.0
+  - python=3.11
   - r-base>=4.3
   - r-ggplot2
   - r-ggrepel
   - r-pheatmap
-  - bioconductor-deseq2
-  - bioconductor-apeglm
-  - bioconductor-clusterprofiler
-  - bioconductor-enrichplot
-  - bioconductor-org.sc.sgd.db
+  - requests
+  - samtools
+  - snakemake=7.32.4
+  - star
+  - subread
+  - wget
+
+prefix: "/home/aliengrapher/micromamba/envs/yeast-rnaseq"
