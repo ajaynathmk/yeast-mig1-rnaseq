@@ -1,0 +1,13 @@
+Module	Section	Sample Name	Source
+fastp	all_sections	SRR6108775	/home/aliengrapher/yeast-mig1-rnaseq/results/fastp/SRR6108775.json
+fastp	all_sections	SRR6108776	/home/aliengrapher/yeast-mig1-rnaseq/results/fastp/SRR6108776.json
+fastp	all_sections	SRR6108783	/home/aliengrapher/yeast-mig1-rnaseq/results/fastp/SRR6108783.json
+fastp	all_sections	SRR6108784	/home/aliengrapher/yeast-mig1-rnaseq/results/fastp/SRR6108784.json
+FastQC	all_sections	SRR6108775_1	/home/aliengrapher/yeast-mig1-rnaseq/results/qc_trimmed/SRR6108775_1_fastqc.zip
+FastQC	all_sections	SRR6108775_2	/home/aliengrapher/yeast-mig1-rnaseq/results/qc_trimmed/SRR6108775_2_fastqc.zip
+FastQC	all_sections	SRR6108776_1	/home/aliengrapher/yeast-mig1-rnaseq/results/qc_trimmed/SRR6108776_1_fastqc.zip
+FastQC	all_sections	SRR6108776_2	/home/aliengrapher/yeast-mig1-rnaseq/results/qc_trimmed/SRR6108776_2_fastqc.zip
+FastQC	all_sections	SRR6108783_1	/home/aliengrapher/yeast-mig1-rnaseq/results/qc_trimmed/SRR6108783_1_fastqc.zip
+FastQC	all_sections	SRR6108783_2	/home/aliengrapher/yeast-mig1-rnaseq/results/qc_trimmed/SRR6108783_2_fastqc.zip
+FastQC	all_sections	SRR6108784_1	/home/aliengrapher/yeast-mig1-rnaseq/results/qc_trimmed/SRR6108784_1_fastqc.zip
+FastQC	all_sections	SRR6108784_2	/home/aliengrapher/yeast-mig1-rnaseq/results/qc_trimmed/SRR6108784_2_fastqc.zip

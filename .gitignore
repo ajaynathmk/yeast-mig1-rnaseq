@@ -7,3 +7,4 @@ results/star/
 *.gtf
 .snakemake/
 logs/
+data/trimmed/
