@@ -5,6 +5,7 @@ channels:
 dependencies:
   - bioconductor-apeglm
   - bioconductor-deseq2
+  - fastp
   - fastqc
   - multiqc
   - pandas

@@ -37,3 +37,9 @@ d <- dist(t(assay(vsd)))
 pheatmap(as.matrix(d), clustering_distance_rows = d, clustering_distance_cols = d,
          filename = "results/deseq2_qc/sample_distance_heatmap.png")
 cat("\nSample correlations (VST):\n"); print(round(cor(assay(vsd)), 4))
+
+# PCA numbers on the 500 most variable genes (first 3 PCs)
+top <- head(order(apply(assay(vsd), 1, var), decreasing = TRUE), 500)
+pc  <- prcomp(t(assay(vsd)[top, ]))
+cat("\nVariance explained by PC1-3 (%):\n"); print(round(100 * summary(pc)$importance[2, 1:3], 1))
+cat("\nSample coordinates:\n"); print(round(pc$x[, 1:3], 1))
