@@ -146,3 +146,127 @@ plot(comparison$lfc_mle, comparison$lfc_shrunk, pch = 16, cex = 0.4)
 abline(0, 1, col = "red")                          # the line where shrunken = unshrunken
 
 ```
+
+
+# Section 9: Diagnostic plots
+
+```{r Diagnostic plots}
+
+plotDispEsts(dds)
+
+# seeing the outliers
+outliers <- rownames(dds)[mcols(dds)$dispOutlier]
+length(outliers)
+head(outliers, 20)
+
+plotMA(res_shrunk, ylim = c(-5, 5))
+
+hist(res$pvalue[res$baseMean > 1], breaks = 20, col = "grey70",
+     main = "p-value histogram", xlab = "p-value")
+
+```
+
+# Section 10: Annotate the results
+
+```{r Annotate results}
+gtf_file <- "data/reference/annotation.gtf"
+
+gtf <- rtracklayer::import(gtf_file)
+genes_df <- as.data.frame(gtf[gtf$type == "gene"])
+colnames(genes_df)
+head(genes_df[, c("gene_id", "gene_name")])
+sum(is.na(genes_df$gene_name))  # how many genes have no gene_name
+
+
+# Annotate the results, apply the cutoffs and save
+
+out_dir <- "results/deseq2"
+dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+
+# 1. Lookup table: one row per gene, with a label (name if it exists, otherwise the ID)
+gene_info <- genes_df[, c("gene_id", "gene_name", "gene_biotype")]
+gene_info$label <- ifelse(is.na(gene_info$gene_name), gene_info$gene_id, gene_info$gene_name)
+
+#2 One result table with both fold changes (shrunken and unshrunken)
+res_table <- data.frame(gene_id = rownames(res),
+                        baseMean = res$baseMean,
+                        log2FC_mle = res$log2FoldChange,
+                        log2FC_shrunk = res_shrunk$log2FoldChange,
+                        lfcSE = res_shrunk$lfcSE,
+                        pvalue = res_shrunk$pvalue,
+                        padj = res_shrunk$padj)
+res_table <- merge(res_table, gene_info, by = "gene_id", all.x = TRUE)
+stopifnot(nrow(res_table) == nrow(res))  # check that the merge didn't change the number of rows
+
+#3 Apply the cutoffs
+sig <- !is.na(res_table$padj) & res_table$padj < padj_cutoff &
+       abs(res_table$log2FC_shrunk) > lfc_cutoff
+res_table$direction <- ifelse(sig & res_table$log2FC_shrunk > 0, "up in KO",
+                       ifelse(sig & res_table$log2FC_shrunk < 0, "down in KO", "not significant"))
+table(res_table$direction)
+
+# 4. Sort by significance and save
+res_table <- res_table[order(res_table$padj), ]
+write.csv(res_table, file.path(out_dir, "deseq2_results_annotated.csv"), row.names = FALSE)
+write.csv(as.data.frame(counts(dds, normalized = TRUE)), file.path(out_dir, "normalized_counts.csv"))
+
+head(res_table[, c("gene_id", "label", "log2FC_shrunk", "padj", "direction")], 10)
+res_table[res_table$gene_id == "YGL035C", ]
+```
+
+# section 10a : More information: look beyond the top 10
+
+```{r More information}
+sig_table <- res_table[res_table$direction != "not significant", ]
+cols <- c("gene_id", "label", "baseMean", "log2FC_shrunk", "padj")
+
+head(sig_table[order(-sig_table$log2FC_shrunk), cols], 15)   # biggest increases in KO
+head(sig_table[order(sig_table$log2FC_shrunk), cols], 15)    # biggest decreases in KO
+table(sig_table$gene_biotype)                                # what kinds of genes?
+
+# Known MIG1 targets (glucose-repressed genes) as a biological check
+known <- c("MIG1", "SUC2", "GAL1", "GAL10", "GAL7", "GAL2", "HXT2")
+res_table[res_table$label %in% known, c(cols, "direction")]
+
+# Since sample 784 is the odd one out, check that the top genes change in both KO samples and not just one
+top_ids <- head(res_table$gene_id, 10)
+round(counts(dds, normalized = TRUE)[top_ids, ])
+
+# An extension to the check, for all 389 significant genes. 
+# With 2 samples per group, the strictest consistency test is “both KO samples are above both WT samples” (or below, for down genes). 
+# This measures how many of your genes pass it:
+
+norm <- counts(dds, normalized = TRUE)
+wt <- c("SRR6108775", "SRR6108776")
+ko <- c("SRR6108783", "SRR6108784")
+
+up_ids   <- res_table$gene_id[res_table$direction == "up in KO"]
+down_ids <- res_table$gene_id[res_table$direction == "down in KO"]
+
+consistent_up   <- apply(norm[up_ids, ],   1, function(x) min(x[ko]) > max(x[wt]))
+consistent_down <- apply(norm[down_ids, ], 1, function(x) max(x[ko]) < min(x[wt]))
+
+mean(consistent_up)      # fraction of "up" genes where KO > WT in every sample
+mean(consistent_down)    # fraction of "down" genes where KO < WT in every sample
+```
+
+
+# Section 11: Volcano plot
+
+```{r Volcano plot}
+volcano_df <- res_table[!is.na(res_table$padj), ]
+
+p_volcano <- EnhancedVolcano::EnhancedVolcano(volcano_df,
+    lab      = volcano_df$label,
+    x        = "log2FC_shrunk",
+    y        = "padj",
+    pCutoff  = padj_cutoff,
+    FCcutoff = lfc_cutoff,
+    selectLab = c("MIG1", head(volcano_df$label, 14)),   # MIG1 plus the 14 most significant
+    drawConnectors = TRUE,
+    title    = "mig1 deletion vs wild type",
+    subtitle = "shrunken log2 fold change")
+
+p_volcano
+ggplot2::ggsave(file.path(out_dir, "volcano.png"), p_volcano, width = 8, height = 7, dpi = 300)
+```
