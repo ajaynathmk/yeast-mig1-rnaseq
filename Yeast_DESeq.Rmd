@@ -1,0 +1,51 @@
+---
+title: "Yeast MIG1 deletion: differential expression"
+output: html_document
+---
+# Section 1: Setup
+```{r setup}
+pkgs <- c("DESeq2", "rtracklayer", "ggplot2", "pheatmap", "RColorBrewer",
+          "EnhancedVolcano", "org.Sc.sgd.db", "clusterProfiler", "enrichplot", "apeglm")
+
+# Load each package and remember the ones that are not available
+missing <- character()
+for (p in pkgs) {
+  ok <- suppressWarnings(suppressPackageStartupMessages(
+    require(p, character.only = TRUE, quietly = TRUE)))
+  if (!ok) missing <- c(missing, p)
+}
+
+# Report
+if (length(missing) > 0) {
+  cat("NOT available:", paste(missing, collapse = ", "), "\n")
+} else {
+  cat("All packages loaded.\n")
+}
+
+# Versions of the packages that loaded
+print(sapply(setdiff(pkgs, missing), function(p) as.character(packageVersion(p))))
+```
+
+
+```{r load_data}
+#1 Read the two tables: counts and metadata
+counts <- read.delim("results/counts/count_matrix.tsv", row.names = 1, check.names = FALSE)
+meta <- read.delim("metadata/samples.tsv")
+
+dim(counts)  # shows dimensions of the counts table
+dim(meta)
+names(meta) # shows the column names of the metadata table  
+
+colnames(counts) # shows the column names of the counts table
+meta$run_accession  # shows the run_accession column of the metadata table
+
+meta <- meta[match(colnames(counts), meta$run_accession), ] # Reorder the metadata table to match the order of the counts table
+
+rownames(meta) <- meta$run_accession  # Set the row names of the metadata table to be the run_accession values
+
+stopifnot(identical(rownames(meta), colnames(counts))) # Check that the row names of the metadata table match the column names of the counts table
+
+meta
+table(meta$condition)  # shows the number of samples in each condition
+
+```
