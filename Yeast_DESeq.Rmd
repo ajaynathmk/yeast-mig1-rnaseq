@@ -26,11 +26,22 @@ if (length(missing) > 0) {
 print(sapply(setdiff(pkgs, missing), function(p) as.character(packageVersion(p))))
 ```
 
+# Section 2 : Settings
+```{r settings}
+counts_file <- "results/counts/count_matrix.tsv"
+meta_file   <- "metadata/samples.tsv"
+padj_cutoff <- 0.05
+lfc_cutoff  <- 1
+min_count   <- 10
+```
 
+
+# Section 3: Load data
+Read the counts and the sample sheet, put the samples in the same order, and check.
 ```{r load_data}
 #1 Read the two tables: counts and metadata
-counts <- read.delim("results/counts/count_matrix.tsv", row.names = 1, check.names = FALSE)
-meta <- read.delim("metadata/samples.tsv")
+counts <- read.delim(counts_file, row.names = 1, check.names = FALSE)
+meta <- read.delim(meta_file)
 
 dim(counts)  # shows dimensions of the counts table
 dim(meta)
@@ -47,5 +58,91 @@ stopifnot(identical(rownames(meta), colnames(counts))) # Check that the row name
 
 meta
 table(meta$condition)  # shows the number of samples in each condition
+
+```
+
+# Section 4: DESeq2 - Build the DESeq2 object
+```{r Build dds}
+
+meta$condition <- factor(meta$condition, levels = c("WT", "KO"))  
+# Set the order of the levels for the condition factor, with "WT" as the reference level
+# The order of the levels matters because DESeq2 will use the first level as the reference for comparisons. 
+# In this case, "WT" is the reference, and "KO" will be compared against it.
+
+dds <- DESeqDataSetFromMatrix(countData = as.matrix(counts),
+                              colData = meta,
+                              design = ~ condition)
+# this creates a DESeqDataSet object from the count matrix and the metadata, specifying that we want to model the counts based on the condition (WT vs KO).
+
+dds
+colData(dds)
+levels(dds$condition)
+design(dds)
+
+```
+
+# Section 5: Filter low-count genes
+
+Genes with almost no reads cannot be tested reliably. They add noise and count in the multiple-testing correction, so they are removed before the model is fitted.
+
+```{r Filter low-count genes}
+keep <- rowSums(counts(dds)) >= min_count  # This creates a logical vector indicating which genes have a total count of at least min_count across all samples. Genes with fewer counts than this threshold will be filtered out.
+cat("Genes before filtering:", nrow(dds), "\n")
+dds <- dds[keep, ]  # Subset the DESeqDataSet to keep only the genes that have a total count of at least min_count across all samples
+cat("Genes after filtering: ", nrow(dds), "\n")
+
+# Comparing another rule
+
+n_min <- min(table(dds$condition))                       # smallest group size = 2
+
+# Compare the two rules before choosing
+keep_A <- rowSums(counts(dds)) >= min_count              # total count >= 10
+keep_B <- rowSums(counts(dds) >= min_count) >= n_min     # >= 10 reads in at least 2 samples
+table(RuleA = keep_A, RuleB = keep_B)
+
+# Apply Rule B
+cat("Genes before filtering:", nrow(dds), "\n")
+dds <- dds[keep_B, ]
+cat("Genes after filtering: ", nrow(dds), "\n")
+
+```
+
+# Section 6: Run the DESeq2 model
+
+```{r Run DESeq2 model}
+dds <- DESeq(dds)
+
+sizeFactors(dds)  # shows the size factors for each sample, which are used to normalize the counts
+head(dispersions(dds))  # shows the estimated dispersion values for each gene, which are used to model the variability in the counts
+resultsNames(dds)  # shows the names of the coefficients in the model, which can be used to extract specific results
+```
+
+
+# Section 7: Results
+
+```{r Results}
+res <- results(dds, contrast = c("condition", "KO", "WT"), alpha = padj_cutoff)
+
+summary(res)
+head(res[order(res$padj), ])      # the most significant genes
+res["YGL035C", ]                  # MIG1, your positive control
+
+```
+
+
+# Section 8: Shrink the fold changes
+
+```{r Shrink fold changes}
+res_shrunk <- lfcShrink(dds, coef = "condition_KO_vs_WT", type = "apeglm", res = res)
+
+# Compare shrunken with unshrunken, for MIG1 and for a few low-count genes
+comparison <- data.frame(baseMean = res$baseMean,
+                         lfc_mle  = res$log2FoldChange,
+                         lfc_shrunk = res_shrunk$log2FoldChange,
+                         row.names = rownames(res))
+comparison["YGL035C", ]
+head(comparison[order(comparison$baseMean), ])     # the lowest-count genes
+plot(comparison$lfc_mle, comparison$lfc_shrunk, pch = 16, cex = 0.4)
+abline(0, 1, col = "red")                          # the line where shrunken = unshrunken
 
 ```
