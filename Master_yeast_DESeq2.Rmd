@@ -289,48 +289,89 @@ setdiff(check_ids, rownames(dds))     # which were removed by the low-count filt
 genes_df[genes_df$gene_id %in% check_ids, c("gene_id", "gene_name", "seqnames", "start", "end")]
 ```
 
-# Section 12: enrichment analysis
+# Section 12: Enrichment analysis (GO)
 
-```{r enrichment analysis}
-keytypes(org.Sc.sgd.db)                                   # which ID types does it know?
+```{r go-db-inspect}
+keytypes(org.Sc.sgd.db)
 orf_keys <- keys(org.Sc.sgd.db, keytype = "ORF")
-head(orf_keys)
-mean(res_table$gene_id %in% orf_keys)                     # share of our genes it recognises
+mean(res_table$gene_id %in% orf_keys)
 sum(res_table$gene_id[res_table$direction != "not significant"] %in% orf_keys)
 ```
 
-# Section 12.1: GO Biological Process, up and down in KO
+## 12.1 Inputs and helper functions
 
-```{r GO BP up and down}
-ont_to_run <- "BP"          # change to "MF" or "CC" later and rerun
-
+```{r go-inputs}
 universe   <- res_table$gene_id[!is.na(res_table$padj)]
 up_genes   <- res_table$gene_id[res_table$direction == "up in KO"]
 down_genes <- res_table$gene_id[res_table$direction == "down in KO"]
+show_cols  <- c("Description", "GeneRatio", "BgRatio", "Count", "p.adjust")
+go_results <- list()
 
-ego_up <- enrichGO(gene = up_genes, universe = universe, OrgDb = org.Sc.sgd.db,
-                   keyType = "ORF", ont = ont_to_run, pAdjustMethod = "BH",
+# Run enrichment for one ontology, for up and down genes; save the tables
+run_go <- function(ont) {
+  up   <- enrichGO(gene = up_genes,   universe = universe, OrgDb = org.Sc.sgd.db,
+                   keyType = "ORF", ont = ont, pAdjustMethod = "BH",
                    pvalueCutoff = 0.05, qvalueCutoff = 0.05)
-ego_down <- enrichGO(gene = down_genes, universe = universe, OrgDb = org.Sc.sgd.db,
-                     keyType = "ORF", ont = ont_to_run, pAdjustMethod = "BH",
-                     pvalueCutoff = 0.05, qvalueCutoff = 0.05)
+  down <- enrichGO(gene = down_genes, universe = universe, OrgDb = org.Sc.sgd.db,
+                   keyType = "ORF", ont = ont, pAdjustMethod = "BH",
+                   pvalueCutoff = 0.05, qvalueCutoff = 0.05)
+  write.csv(as.data.frame(up),   file.path(out_dir, paste0("GO_", ont, "_up.csv")))
+  write.csv(as.data.frame(down), file.path(out_dir, paste0("GO_", ont, "_down.csv")))
+  list(up = up, down = down)
+}
 
-show_cols <- c("Description", "GeneRatio", "BgRatio", "Count", "p.adjust")
-nrow(as.data.frame(ego_up));   head(as.data.frame(ego_up)[, show_cols], 15)
-nrow(as.data.frame(ego_down)); head(as.data.frame(ego_down)[, show_cols], 15)
+# Print the number of enriched terms and the top rows (safe if there are none)
+show_go <- function(x) {
+  d <- as.data.frame(x)
+  cat(nrow(d), "enriched terms\n")
+  if (nrow(d) > 0) print(head(d[, show_cols], 15))
+}
 
-write.csv(as.data.frame(ego_up),   file.path(out_dir, paste0("GO_", ont_to_run, "_up.csv")))
-write.csv(as.data.frame(ego_down), file.path(out_dir, paste0("GO_", ont_to_run, "_down.csv")))
+# Dotplot of the top terms, saved to a file (skipped if there are none)
+plot_go <- function(x, ont, direction, height = 6) {
+  if (is.null(x) || nrow(as.data.frame(x)) == 0) { cat("no enriched terms\n"); return(invisible(NULL)) }
+  p <- dotplot(x, showCategory = 15, title = paste0("GO ", ont, ": ", direction, " in KO"))
+  print(p)
+  ggsave(file.path(out_dir, paste0("GO_", ont, "_", direction, "_dotplot.png")),
+         p, width = 8, height = height, dpi = 300)
+}
 ```
 
+## 12.2 Biological Process
 
-# Section 12.2: GO dotplots
-```{r GO dotplots}
-p_up   <- dotplot(ego_up,   showCategory = 15, title = "GO BP: up in KO")
-p_down <- dotplot(ego_down, showCategory = 15, title = "GO BP: down in KO")
-p_up
-p_down
+```{r go-bp}
+go_results$BP <- run_go("BP")
+show_go(go_results$BP$up)
+show_go(go_results$BP$down)
+```
 
-ggsave(file.path(out_dir, "GO_BP_up_dotplot.png"),   p_up,   width = 8, height = 7, dpi = 300)
-ggsave(file.path(out_dir, "GO_BP_down_dotplot.png"), p_down, width = 8, height = 5, dpi = 300)
+```{r go-bp-plots}
+plot_go(go_results$BP$up,   "BP", "up",   height = 7)
+plot_go(go_results$BP$down, "BP", "down", height = 5)
+```
+
+## 12.3 Molecular Function
+
+```{r go-mf}
+go_results$MF <- run_go("MF")
+show_go(go_results$MF$up)
+show_go(go_results$MF$down)
+```
+
+```{r go-mf-plots}
+plot_go(go_results$MF$up,   "MF", "up")
+plot_go(go_results$MF$down, "MF", "down")
+```
+
+## 12.4 Cellular Component
+
+```{r go-cc}
+go_results$CC <- run_go("CC")
+show_go(go_results$CC$up)
+show_go(go_results$CC$down)
+```
+
+```{r go-cc-plots}
+plot_go(go_results$CC$up,   "CC", "up")
+plot_go(go_results$CC$down, "CC", "down")
 ```

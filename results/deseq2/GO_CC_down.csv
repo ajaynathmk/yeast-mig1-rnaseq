@@ -1,0 +1,2 @@
+"","ID","Description","GeneRatio","BgRatio","RichFactor","FoldEnrichment","zScore","pvalue","p.adjust","qvalue","geneID","Count"
+"GO:0005788","GO:0005788","endoplasmic reticulum lumen","5/143","16/5659",0.3125,12.3666958041958,7.33038129363204,3.35268626633189e-05,0.00556545920211094,0.00547017232927835,"YJL034W/YCL043C/YOR288C/YOL031C/YDR518W",5
