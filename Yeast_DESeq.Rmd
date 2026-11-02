@@ -270,3 +270,67 @@ p_volcano <- EnhancedVolcano::EnhancedVolcano(volcano_df,
 p_volcano
 ggplot2::ggsave(file.path(out_dir, "volcano.png"), p_volcano, width = 8, height = 7, dpi = 300)
 ```
+# Section 12a:  Sanity check of mating-type genes
+
+```{r Sanity check of mating-type genes}
+mating_ids <- c("YFL026W", "YIL015W", "YNR044W", "YGL032C",   # STE2, BAR1, AGA1, AGA2 (a-cell genes, as I remember)
+                "YKL178C", "YPL187W", "YGL089C",               # STE3, MFALPHA1, MFALPHA2 (alpha-cell genes)
+                "YCR040W", "YCR039C",                          # MATALPHA1, MATALPHA2
+                "YDR461W", "YNL145W")                          # MFA1, MFA2
+
+res_table[res_table$gene_id %in% mating_ids,
+          c("gene_id", "label", "baseMean", "log2FC_shrunk", "padj")]
+round(counts(dds, normalized = TRUE)[intersect(mating_ids, rownames(dds)), ])
+
+# Check the MAT locus directly in the data
+check_ids <- c("YCR096C", "YCR097W", "YCR040W", "YCR039C")   # HMRA2, HMRA1, MATALPHA1, MATALPHA2 (as I remember)
+round(counts(dds, normalized = TRUE)[intersect(check_ids, rownames(dds)), ])
+setdiff(check_ids, rownames(dds))     # which were removed by the low-count filter?
+genes_df[genes_df$gene_id %in% check_ids, c("gene_id", "gene_name", "seqnames", "start", "end")]
+```
+
+# Section 12: enrichment analysis
+
+```{r enrichment analysis}
+keytypes(org.Sc.sgd.db)                                   # which ID types does it know?
+orf_keys <- keys(org.Sc.sgd.db, keytype = "ORF")
+head(orf_keys)
+mean(res_table$gene_id %in% orf_keys)                     # share of our genes it recognises
+sum(res_table$gene_id[res_table$direction != "not significant"] %in% orf_keys)
+```
+
+# Section 12.1: GO Biological Process, up and down in KO
+
+```{r GO BP up and down}
+ont_to_run <- "BP"          # change to "MF" or "CC" later and rerun
+
+universe   <- res_table$gene_id[!is.na(res_table$padj)]
+up_genes   <- res_table$gene_id[res_table$direction == "up in KO"]
+down_genes <- res_table$gene_id[res_table$direction == "down in KO"]
+
+ego_up <- enrichGO(gene = up_genes, universe = universe, OrgDb = org.Sc.sgd.db,
+                   keyType = "ORF", ont = ont_to_run, pAdjustMethod = "BH",
+                   pvalueCutoff = 0.05, qvalueCutoff = 0.05)
+ego_down <- enrichGO(gene = down_genes, universe = universe, OrgDb = org.Sc.sgd.db,
+                     keyType = "ORF", ont = ont_to_run, pAdjustMethod = "BH",
+                     pvalueCutoff = 0.05, qvalueCutoff = 0.05)
+
+show_cols <- c("Description", "GeneRatio", "BgRatio", "Count", "p.adjust")
+nrow(as.data.frame(ego_up));   head(as.data.frame(ego_up)[, show_cols], 15)
+nrow(as.data.frame(ego_down)); head(as.data.frame(ego_down)[, show_cols], 15)
+
+write.csv(as.data.frame(ego_up),   file.path(out_dir, paste0("GO_", ont_to_run, "_up.csv")))
+write.csv(as.data.frame(ego_down), file.path(out_dir, paste0("GO_", ont_to_run, "_down.csv")))
+```
+
+
+# Section 12.2: GO dotplots
+```{r GO dotplots}
+p_up   <- dotplot(ego_up,   showCategory = 15, title = "GO BP: up in KO")
+p_down <- dotplot(ego_down, showCategory = 15, title = "GO BP: down in KO")
+p_up
+p_down
+
+ggsave(file.path(out_dir, "GO_BP_up_dotplot.png"),   p_up,   width = 8, height = 7, dpi = 300)
+ggsave(file.path(out_dir, "GO_BP_down_dotplot.png"), p_down, width = 8, height = 5, dpi = 300)
+```
