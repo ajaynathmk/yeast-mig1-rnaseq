@@ -8,3 +8,4 @@ results/star/
 .snakemake/
 logs/
 data/trimmed/
+.vscode/
