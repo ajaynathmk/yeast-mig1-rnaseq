@@ -12,6 +12,11 @@ COPY --chown=$MAMBA_USER:$MAMBA_USER Snakefile config.yaml ./
 COPY --chown=$MAMBA_USER:$MAMBA_USER scripts/ scripts/
 COPY --chown=$MAMBA_USER:$MAMBA_USER metadata/ metadata/
 
-# 3. Running the container runs the pipeline
+# 3. Let any user write inside /pipeline (the container is run as the host user)
+USER root
+RUN chmod -R a+rwX /pipeline
+USER $MAMBA_USER
+
+# 4. Running the container runs the pipeline
 ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "snakemake"]
 CMD ["--cores", "4"]
