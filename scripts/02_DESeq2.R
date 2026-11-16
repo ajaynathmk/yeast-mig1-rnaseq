@@ -97,16 +97,62 @@ cat("up in KO:", sum(res_table$direction == "up in KO"),
 
 # ---- 8. plots ----
 
-# diagnostic plots: dispersion, MA, p-value histogram
-png(file.path(out_dir, "diagnostics.png"), width = 1800, height = 600, res = 150)
-par(mfrow = c(1, 3))
-plotDispEsts(dds)
-plotMA(res_shrunk, ylim = c(-5, 5))
-hist(res$pvalue[res$baseMean > 1], breaks = 20, col = "grey70",
-     main = "p-value histogram", xlab = "p-value")
-dev.off()
+# shared theme and saver: every plot is written as PNG (report) and PDF (vector)
+base_theme <- theme_bw(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", size = 12),
+        plot.subtitle = element_text(size = 9, colour = "grey30"),
+        legend.position = "bottom", panel.grid.minor = element_blank())
 
-# volcano plot
+save_plot <- function(p, name, w = 6.5, h = 4.5) {
+  ggsave(file.path(out_dir, paste0(name, ".png")), p, width = w, height = h, dpi = 300)
+  ggsave(file.path(out_dir, paste0(name, ".pdf")), p, width = w, height = h)
+}
+
+# 8a. dispersion estimates
+disp <- data.frame(mean = mcols(dds)$baseMean,
+                   gene_wise = mcols(dds)$dispGeneEst,
+                   fitted = mcols(dds)$dispFit,
+                   final = mcols(dds)$dispersion)
+disp <- disp[!is.na(disp$gene_wise) & disp$mean > 0, ]
+p_disp <- ggplot(disp, aes(mean)) +
+  geom_point(aes(y = gene_wise, colour = "Gene-wise estimate"), size = 0.6, alpha = 0.4) +
+  geom_point(aes(y = final, colour = "Final (shrunken)"), size = 0.6, alpha = 0.4) +
+  geom_line(aes(y = fitted, colour = "Fitted trend"), linewidth = 0.9) +
+  scale_x_log10() + scale_y_log10() +
+  scale_colour_manual(values = c("Gene-wise estimate" = "grey50",
+                                 "Final (shrunken)" = "#0072B2",
+                                 "Fitted trend" = "#D55E00"), name = NULL) +
+  labs(title = "Dispersion estimates",
+       subtitle = paste0(nrow(disp), " genes; design ~ condition"),
+       x = "Mean of normalised counts", y = "Dispersion") + base_theme
+save_plot(p_disp, "dispersion")
+
+# 8b. MA plot (apeglm-shrunken fold changes)
+ma <- as.data.frame(res_shrunk)
+ma <- ma[!is.na(ma$log2FoldChange), ]
+ma$sig <- ifelse(!is.na(ma$padj) & ma$padj < padj_cutoff & abs(ma$log2FoldChange) > lfc_cutoff,
+                 "Significant", "Not significant")
+p_ma <- ggplot(ma, aes(baseMean, log2FoldChange, colour = sig)) +
+  geom_point(size = 0.7, alpha = 0.6) +
+  geom_hline(yintercept = c(-lfc_cutoff, lfc_cutoff), linetype = "dashed", colour = "grey40") +
+  scale_x_log10() +
+  scale_colour_manual(values = c("Not significant" = "grey65", "Significant" = "#D55E00"), name = NULL) +
+  labs(title = "MA plot, mig1 KO vs wild type",
+       subtitle = paste0("apeglm-shrunken log2 fold change; significant = padj < ", padj_cutoff,
+                         " and |log2FC| > ", lfc_cutoff),
+       x = "Mean of normalised counts", y = "Shrunken log2 fold change (KO / WT)") + base_theme
+save_plot(p_ma, "MA_plot")
+
+# 8c. p-value histogram (genes with mean count > 1, as before)
+pv <- data.frame(p = res$pvalue[res$baseMean > 1 & !is.na(res$pvalue)])
+p_pv <- ggplot(pv, aes(p)) +
+  geom_histogram(breaks = seq(0, 1, 0.05), fill = "#0072B2", colour = "white") +
+  labs(title = "Distribution of raw p-values",
+       subtitle = paste0(nrow(pv), " genes with mean normalised count > 1; a peak near 0 on a flat background is expected"),
+       x = "Raw p-value", y = "Number of genes") + base_theme
+save_plot(p_pv, "pvalue_histogram")
+
+# 8d. volcano plot
 volcano <- EnhancedVolcano(res_table,
                            lab = res_table$label,
                            x = "log2FC_shrunk",
@@ -114,8 +160,13 @@ volcano <- EnhancedVolcano(res_table,
                            selectLab = c("MIG1", head(res_table$label, 14)),
                            pCutoff = padj_cutoff,
                            FCcutoff = lfc_cutoff,
-                           title = "MIG1 deletion vs wild type")
-ggsave(file.path(out_dir, "volcano.png"), volcano, width = 9, height = 8, dpi = 150)
+                           title = "MIG1 deletion vs wild type",
+                           subtitle = paste0("apeglm-shrunken log2 fold change; cut-offs: padj < ",
+                                             padj_cutoff, ", |log2FC| > ", lfc_cutoff),
+                           caption = NULL, legendPosition = "bottom")
+ggsave(file.path(out_dir, "volcano.png"), volcano, width = 8, height = 7, dpi = 300)
+ggsave(file.path(out_dir, "volcano.pdf"), volcano, width = 8, height = 7)
+
 
 # ---- 9. GO enrichment ----
 
@@ -138,11 +189,26 @@ run_go <- function(ont) {
 }
 
 # dotplot of the top terms, saved to a file (skipped if there are none)
-plot_go <- function(x, ont, direction, height = 6) {
+go_names <- c(BP = "Biological Process", MF = "Molecular Function", CC = "Cellular Component")
+
+plot_go <- function(x, ont, direction) {
   if (is.null(x) || nrow(as.data.frame(x)) == 0) return(invisible(NULL))
-  p <- dotplot(x, showCategory = 15, title = paste0("GO ", ont, ": ", direction, " in KO"))
+  n_terms <- min(15, nrow(as.data.frame(x)))
+  n_genes <- length(if (direction == "up") up_genes else down_genes)
+  p <- dotplot(x, showCategory = n_terms, label_format = 40) +
+    labs(title = paste0("GO ", go_names[[ont]], ": genes ", direction, " in KO"),
+         subtitle = paste0(n_genes, " significant genes; background = ", length(universe),
+                           " tested genes; BH-adjusted p < 0.05"),
+         x = "Gene ratio (genes in term / significant genes)") +
+    theme_bw(base_size = 11) +
+    theme(plot.title = element_text(face = "bold", size = 12),
+          plot.subtitle = element_text(size = 9, colour = "grey30"),
+          panel.grid.minor = element_blank())
+  h <- max(3.5, 0.32 * n_terms + 2)
   ggsave(file.path(out_dir, paste0("GO_", ont, "_", direction, "_dotplot.png")),
-         p, width = 8, height = height, dpi = 300)
+         p, width = 7, height = h, dpi = 300)
+  ggsave(file.path(out_dir, paste0("GO_", ont, "_", direction, "_dotplot.pdf")),
+         p, width = 7, height = h)
 }
 
 # run all three ontologies

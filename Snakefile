@@ -215,7 +215,9 @@ rule deseq2:
     output:
         "results/deseq2/deseq2_results_annotated.csv",
         "results/deseq2/normalized_counts.csv",
-        "results/deseq2/diagnostics.png",
+        "results/deseq2/dispersion.png",
+        "results/deseq2/MA_plot.png",
+        "results/deseq2/pvalue_histogram.png",
         "results/deseq2/volcano.png",
         expand("results/deseq2/GO_{ont}_{direction}.csv", ont=["BP", "MF", "CC"], direction=["up", "down"])
     params:

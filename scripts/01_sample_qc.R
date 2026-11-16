@@ -45,19 +45,39 @@ vsd <- vst(dds, blind = TRUE)
 pca <- plotPCA(vsd, intgroup = "condition", returnData = TRUE)
 pv  <- round(100 * attr(pca, "percentVar"))
 p <- ggplot(pca, aes(PC1, PC2, colour = condition, label = name)) +
-  geom_point(size = 4) + geom_text(vjust = -1, size = 3.5) +
+  geom_point(size = 4) +
+  geom_text(vjust = -1, size = 3.2, show.legend = FALSE) +
+  scale_colour_manual(values = c("WT" = "#0072B2", "KO" = "#D55E00"), name = "Genotype") +
   scale_x_continuous(expand = expansion(mult = 0.25)) +
   scale_y_continuous(expand = expansion(mult = 0.15)) +
-  xlab(paste0("PC1: ", pv[1], "% variance")) + ylab(paste0("PC2: ", pv[2], "% variance")) +
-  theme_bw()
-ggsave(file.path(out_dir, "PCA.png"), p, width = 7, height = 5.5, dpi = 150)
+  labs(title = "Principal component analysis of samples",
+       subtitle = paste0("Variance-stabilised counts, 500 most variable of ", nrow(vsd),
+                " genes (total count >= 10)"),
+       x = paste0("PC1: ", pv[1], "% variance"),
+       y = paste0("PC2: ", pv[2], "% variance")) +
+  theme_bw(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", size = 12),
+        plot.subtitle = element_text(size = 9, colour = "grey30"),
+        legend.position = "bottom", panel.grid.minor = element_blank())
+ggsave(file.path(out_dir, "PCA.png"), p, width = 6.5, height = 5, dpi = 300)
+ggsave(file.path(out_dir, "PCA.pdf"), p, width = 6.5, height = 5)
 
 # 5. Sample-to-sample distances and correlations
 d <- dist(t(assay(vsd)))
-pheatmap(as.matrix(d), clustering_distance_rows = d, clustering_distance_cols = d,
-         filename = file.path(out_dir, "sample_distance_heatmap.png"))
+annot <- data.frame(Genotype = meta$condition, row.names = rownames(meta))
+annot_cols <- list(Genotype = c(WT = "#0072B2", KO = "#D55E00"))
+hm <- pheatmap(as.matrix(d), clustering_distance_rows = d, clustering_distance_cols = d,
+               annotation_col = annot, annotation_row = annot, annotation_colors = annot_cols,
+               color = colorRampPalette(rev(RColorBrewer::brewer.pal(9, "Blues")))(100),
+               main = "Sample-to-sample distances (Euclidean, VST counts)",
+               fontsize = 10, border_color = NA, silent = TRUE)
+png(file.path(out_dir, "sample_distance_heatmap.png"), width = 6.5, height = 5.5, units = "in", res = 300)
+grid::grid.draw(hm$gtable); invisible(dev.off())
+pdf(file.path(out_dir, "sample_distance_heatmap.pdf"), width = 6.5, height = 5.5)
+grid::grid.draw(hm$gtable); invisible(dev.off())
 cat("\nSample correlations (VST):\n"); print(round(cor(assay(vsd)), 4))
 write.csv(round(cor(assay(vsd)), 4), file.path(out_dir, "sample_correlations.csv"))
+
 
 # PCA numbers on the 500 most variable genes (first 3 PCs)
 top <- head(order(apply(assay(vsd), 1, var), decreasing = TRUE), 500)
