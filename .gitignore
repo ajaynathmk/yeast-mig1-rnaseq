@@ -9,3 +9,28 @@ results/star/
 logs/
 data/trimmed/
 .vscode/
+
+# Core LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex(busy)
+
+# Bibliography and Index files
+*.bbl
+*.blg
+*.idx
+*.ind
+*.ilg
+*.lot
+*.lof
+
+# VS Code LaTeX Workshop specific
+*.pdfsync
+*.nav
+*.snm
+*.vrb
