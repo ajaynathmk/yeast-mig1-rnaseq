@@ -9,11 +9,16 @@ results/star/
 logs/
 data/trimmed/
 .vscode/
+*.fq.gz
+results/*_test/
+results/test784/*Unmapped*
+data/
+Rplots.pdf
 
 # Core LaTeX auxiliary files
-*.aux
-*.log
-*.out
+Latex_docs/*.aux
+Latex_docs/*.log
+Latex_docs/*.out    
 *.toc
 *.fls
 *.fdb_latexmk
