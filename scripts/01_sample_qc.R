@@ -46,9 +46,11 @@ pca <- plotPCA(vsd, intgroup = "condition", returnData = TRUE)
 pv  <- round(100 * attr(pca, "percentVar"))
 p <- ggplot(pca, aes(PC1, PC2, colour = condition, label = name)) +
   geom_point(size = 4) + geom_text(vjust = -1, size = 3.5) +
+  scale_x_continuous(expand = expansion(mult = 0.25)) +
+  scale_y_continuous(expand = expansion(mult = 0.15)) +
   xlab(paste0("PC1: ", pv[1], "% variance")) + ylab(paste0("PC2: ", pv[2], "% variance")) +
   theme_bw()
-ggsave(file.path(out_dir, "PCA.png"), p, width = 6, height = 5, dpi = 150)
+ggsave(file.path(out_dir, "PCA.png"), p, width = 7, height = 5.5, dpi = 150)
 
 # 5. Sample-to-sample distances and correlations
 d <- dist(t(assay(vsd)))

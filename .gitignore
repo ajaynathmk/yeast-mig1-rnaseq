@@ -11,14 +11,14 @@ data/trimmed/
 .vscode/
 *.fq.gz
 results/*_test/
-results/test784/*Unmapped*
+exploration/sample_784_diagnosis/*Unmapped*
 data/
 Rplots.pdf
 
 # Core LaTeX auxiliary files
-Latex_docs/*.aux
-Latex_docs/*.log
-Latex_docs/*.out    
+docs/report/*.aux
+docs/report/*.log
+docs/report/*.out    
 *.toc
 *.fls
 *.fdb_latexmk
