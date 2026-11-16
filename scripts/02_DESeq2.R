@@ -100,9 +100,11 @@ cat("up in KO:", sum(res_table$direction == "up in KO"),
 # shared theme and saver: every plot is written as PNG (report) and PDF (vector)
 base_theme <- theme_bw(base_size = 11) +
   theme(plot.title = element_text(face = "bold", size = 12),
+        plot.title.position = "plot",
         plot.subtitle = element_text(size = 9, colour = "grey30"),
         legend.position = "bottom", panel.grid.minor = element_blank())
-
+# wrap long subtitles so they never run outside the plot
+wrap_sub <- function(x, width = 70) paste(strwrap(x, width), collapse = "\n")
 save_plot <- function(p, name, w = 6.5, h = 4.5) {
   ggsave(file.path(out_dir, paste0(name, ".png")), p, width = w, height = h, dpi = 300)
   ggsave(file.path(out_dir, paste0(name, ".pdf")), p, width = w, height = h)
@@ -196,19 +198,22 @@ plot_go <- function(x, ont, direction) {
   n_terms <- min(15, nrow(as.data.frame(x)))
   n_genes <- length(if (direction == "up") up_genes else down_genes)
   p <- dotplot(x, showCategory = n_terms, label_format = 40) +
-    labs(title = paste0("GO ", go_names[[ont]], ": genes ", direction, " in KO"),
-         subtitle = paste0(n_genes, " significant genes; background = ", length(universe),
-                           " tested genes; BH-adjusted p < 0.05"),
+        labs(title = paste0("GO ", go_names[[ont]], ": genes ", direction, " in KO"),
+         subtitle = wrap_sub(paste0(n_genes, " significant genes; background = ", length(universe),
+                                    " tested genes; BH-adjusted p < 0.05"), width = 55),
          x = "Gene ratio (genes in term / significant genes)") +
     theme_bw(base_size = 11) +
     theme(plot.title = element_text(face = "bold", size = 12),
+          plot.title.position = "plot",
           plot.subtitle = element_text(size = 9, colour = "grey30"),
+          legend.title = element_text(size = 9),
+          legend.text = element_text(size = 8),
           panel.grid.minor = element_blank())
   h <- max(3.5, 0.32 * n_terms + 2)
   ggsave(file.path(out_dir, paste0("GO_", ont, "_", direction, "_dotplot.png")),
-         p, width = 7, height = h, dpi = 300)
+         p, width = 8, height = h, dpi = 300)
   ggsave(file.path(out_dir, paste0("GO_", ont, "_", direction, "_dotplot.pdf")),
-         p, width = 7, height = h)
+         p, width = 8, height = h)
 }
 
 # run all three ontologies

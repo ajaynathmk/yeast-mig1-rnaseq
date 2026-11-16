@@ -20,6 +20,8 @@ suppressPackageStartupMessages({
   library(pheatmap)
 })
 
+wrap_sub <- function(x, width = 70) paste(strwrap(x, width), collapse = "\n")
+
 # 1. Read the count matrix and the sample sheet
 counts <- read.delim(counts_file, row.names = 1, check.names = FALSE)
 meta   <- read.delim(meta_file, stringsAsFactors = FALSE)
@@ -51,12 +53,13 @@ p <- ggplot(pca, aes(PC1, PC2, colour = condition, label = name)) +
   scale_x_continuous(expand = expansion(mult = 0.25)) +
   scale_y_continuous(expand = expansion(mult = 0.15)) +
   labs(title = "Principal component analysis of samples",
-       subtitle = paste0("Variance-stabilised counts, 500 most variable of ", nrow(vsd),
-                " genes (total count >= 10)"),
+       subtitle = wrap_sub(paste0("Variance-stabilised counts, 500 most variable of ", nrow(vsd),
+                                  " genes (total count >= 10)"), width = 55),
        x = paste0("PC1: ", pv[1], "% variance"),
        y = paste0("PC2: ", pv[2], "% variance")) +
   theme_bw(base_size = 11) +
   theme(plot.title = element_text(face = "bold", size = 12),
+        plot.title.position = "plot",
         plot.subtitle = element_text(size = 9, colour = "grey30"),
         legend.position = "bottom", panel.grid.minor = element_blank())
 ggsave(file.path(out_dir, "PCA.png"), p, width = 6.5, height = 5, dpi = 300)
