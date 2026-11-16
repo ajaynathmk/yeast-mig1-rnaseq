@@ -99,7 +99,7 @@ The sample-level plots use a looser filter: the 6,291 genes with at least 10 rea
 Gene Ontology (GO) \cite{ashburner2000} enrichment was run for Biological Process (BP), Molecular Function (MF) and Cellular Component (CC) with clusterProfiler \cite{wu2021} and the \texttt{org.Sc.sgd.db} annotation package \cite{carlson2025}. Gene descriptions were checked against the \textit{Saccharomyces} Genome Database (SGD) \cite{cherry2012}. Up- and down-regulated genes were tested separately against all tested genes as background. Terms with adjusted $p<0.05$ were kept.
 
 \subsection{Workflow}
-The analysis was first run step by step as numbered shell scripts (\texttt{exploration/manual\_steps/}) and in an R Markdown notebook (\texttt{notebooks/}). It was then converted into two R scripts (\texttt{scripts/01\_sample\_qc.R}, \texttt{scripts/02\_DESeq2.R}) and a Snakemake workflow \cite{snakemake2021} (Figure~\ref{fig:workflow}). Settings are stored in \texttt{config.yaml}. Software versions are listed in Table~\ref{tab:software}; a locked environment file and a Dockerfile are also provided.
+The analysis was first run step by step as shell scripts and in an R Markdown notebook; these exploratory files are not part of the repository. It was then converted into two R scripts (\texttt{scripts/01\_sample\_qc.R}, \texttt{scripts/02\_DESeq2.R}) and a Snakemake workflow \cite{snakemake2021} (Figure~\ref{fig:workflow}). Settings are stored in \texttt{config.yaml}. Software versions are listed in Table~\ref{tab:software}; a locked environment file and a Dockerfile are also provided.
 
 \begin{figure}[tbp]
 \centering
