@@ -1,0 +1,7 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using these metadata."
+title: "Yeast MIG1 deletion RNA-seq: a reproducible Snakemake pipeline"
+type: software
+authors: [{family-names: "Meethal Kandy", given-names: "Ajaynath", affiliation: "Deggendorf Institute of Technology"}]
+license: MIT
+repository-code: "https://github.com/ajaynathmk/yeast-mig1-rnaseq"
