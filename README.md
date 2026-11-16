@@ -1,3 +1,5 @@
+[![workflow-dry-run](https://github.com/ajaynathmk/yeast-mig1-rnaseq/actions/workflows/dry-run.yml/badge.svg)](https://github.com/ajaynathmk/yeast-mig1-rnaseq/actions/workflows/dry-run.yml)
+
 # Yeast MIG1 deletion RNA-seq: a reproducible Snakemake pipeline
 
 Differential expression analysis of a *mig1Δ* knockout against wild-type *Saccharomyces cerevisiae*, from raw
