@@ -163,8 +163,9 @@ determined by experiment, not assumed: see the QC findings.
 **Differential expression (DESeq2).**
 - Design `~ condition` with wild type as the reference level.
 - Genes are kept if they have at least 10 reads in at least as many samples as the smallest group (here 2).
-  This leaves **5,969** genes. A simpler rule (total of 10 reads over all samples) would keep 6,291, including
-  genes with reads in a single sample.
+  This leaves **5,969** genes. A simpler rule (a total of 10 reads over all samples) would keep 6,291, which
+  also admits genes with reads in only one sample. The sample QC (PCA, distances, correlations) uses this
+  simpler filter, because it only needs to drop empty genes; the DESeq2 test uses the stricter one.
 - Design `~ replicate + condition` was considered and rejected: with four samples it leaves one residual
   degree of freedom, and the replicate labels are arbitrary.
 - Wald test, Benjamini–Hochberg adjustment.
@@ -260,9 +261,9 @@ signature.
 - **Sample SRR6108784** is contaminated and has about half the usable reads of the others (see above). It
   agrees with the other knockout sample on every significant gene, but a leave-one-out analysis has not yet
   been done.
-- **The pheromone and mating up-regulation is unexplained.** Both strains appear to be MATa (a check of the
-  mating-type locus and of the alpha-specific genes, which are unchanged), so a mating-type difference does
-  not explain it.
+- **The pheromone and mating up-regulation is unexplained.** We found no evidence of a mating-type difference
+  between the strains, but the check is indirect: the silent mating-type loci share sequence with the
+  active one, so reads there cannot settle it.
 - **Growth conditions and the genetic background of the two strains** have not been confirmed against the
   publication.
 - **snoRNA and tRNA results** (about 13 genes) are unreliable, since the library type captures them poorly.
@@ -302,7 +303,6 @@ signature.
 ├── docs/
 │   ├── Notes.md               running log of the work
 │   └── report/                LaTeX report
-├── figures/                   images used in this README
 └── results/                   pipeline outputs
 ```
 
