@@ -1,0 +1,25 @@
+# ---------------------------------------------------------------
+# Settings for the yeast MIG1 RNA-seq pipeline.
+# Change values here, not inside the Snakefile or the scripts.
+# ---------------------------------------------------------------
+
+# Sample sheet (columns: run_accession, sample, condition, replicate, fastq_ftp)
+samples: "metadata/samples.tsv"
+
+# Annotation used by the DESeq2 script (made by the download_gtf rule)
+gtf: "data/reference/annotation.gtf"
+
+# Reference genome, Ensembl Genomes fungi release 56, assembly R64-1-1
+genome_url: "http://ftp.ensemblgenomes.org/pub/fungi/release-56/fasta/saccharomyces_cerevisiae/dna/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.fa.gz"
+gtf_url: "http://ftp.ensemblgenomes.org/pub/fungi/release-56/gtf/saccharomyces_cerevisiae/Saccharomyces_cerevisiae.R64-1-1.56.gtf.gz"
+
+# STAR index settings
+sjdb_overhang: 150          # longest read length (151 bp) minus 1
+star_sa_index_nbases: 10    # suits the 12 Mb yeast genome
+
+# featureCounts strandedness: 0 = unstranded (checked on all four samples)
+strandedness: 0
+
+# Differential expression cutoffs
+padj_cutoff: 0.05
+lfc_cutoff: 1               # applied to the shrunken log2 fold change
