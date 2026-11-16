@@ -14,6 +14,7 @@ results/*_test/
 exploration/sample_784_diagnosis/*Unmapped*
 data/
 Rplots.pdf
+docs/Notes.md
 
 # Core LaTeX auxiliary files
 docs/report/*.aux
