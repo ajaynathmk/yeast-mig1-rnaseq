@@ -9,6 +9,19 @@ This project is a learning project: every step was first run by hand, checked, a
 script and a workflow rule. The manual checks (strandedness test, investigation of a problem sample) are
 summarised under [Quality control findings](#quality-control-findings).
 
+## Report
+
+A written report of the analysis (introduction, methods, results, discussion and limitations) is in
+[`docs/report/main.pdf`](docs/report/main.pdf). It is written in LaTeX; the source is
+[`main.tex`](docs/report/main.tex) with the references in [`references.bib`](docs/report/references.bib),
+and every figure comes from the workflow output in [`figures/`](figures/). To rebuild the PDF:
+
+```bash
+cd docs/report && latexmk -pdf main.tex
+```
+
+[![First page of the report](docs/report/preview.png)](docs/report/main.pdf)
+
 ## Contents
 
 1. [Dataset](#dataset)

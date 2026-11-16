@@ -46,3 +46,9 @@ notebooks/
 exploration/
 results/
 logs/
+docs/report/*.bbl
+docs/report/*.bcf
+docs/report/*.run.xml
+docs/report/*.blg
+docs/report/*.fls
+docs/report/*.fdb_latexmk
