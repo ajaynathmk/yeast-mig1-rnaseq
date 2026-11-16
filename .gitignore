@@ -34,3 +34,4 @@ data/trimmed/
 *.nav
 *.snm
 *.vrb
+results/*_test/

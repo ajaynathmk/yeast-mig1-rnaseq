@@ -1,1 +1,0 @@
-Rscript scripts/02_DESeq2.R results/counts/count_matrix.tsv metadata/samples.tsv data/reference/annotation.gtf results/deseq2_test 0.05 1
