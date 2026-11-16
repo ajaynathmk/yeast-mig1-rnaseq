@@ -1,0 +1,9 @@
+.git
+.snakemake
+data/
+results/
+logs/
+exploration/
+docs/
+notebooks/
+*.html
