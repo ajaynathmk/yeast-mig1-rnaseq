@@ -1,9 +1,0 @@
-Sample	Top overrepresented sequence	Sum of remaining overrepresented sequences
-SRR6108775_1	0.0	0.0
-SRR6108775_2	0.0	0.0
-SRR6108776_1	0.0	0.0
-SRR6108776_2	0.0	0.0
-SRR6108783_1	0.0	0.0
-SRR6108783_2	0.0	0.0
-SRR6108784_1	0.79	2.82
-SRR6108784_2	0.82	2.8800000000000003

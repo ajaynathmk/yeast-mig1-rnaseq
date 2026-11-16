@@ -41,3 +41,8 @@ docs/report/*.out
 *.snm
 *.vrb
 results/*_test/
+
+notebooks/
+exploration/
+results/
+logs/
