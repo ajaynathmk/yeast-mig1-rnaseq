@@ -394,7 +394,7 @@ BLASTn at the NCBI web service was used for the contamination check. Exact versi
   Innovation* 2021.
 - Gan Y, Qi X, Lin Y, Guo Y, Zhang Y, Wang Q. A hierarchical transcriptional regulatory network required for
   long-term thermal stress tolerance in an industrial *Saccharomyces cerevisiae* strain. *Frontiers in
-  Bioengineering and Biotechnology* 9 (2021), 826238. doi:10.3389/fbioe.2021.826238 (the study behind GSE104356).
+  Bioengineering and Biotechnology* 9 (2022), 826238. doi:10.3389/fbioe.2021.826238 (the study behind GSE104356).
 - Altschul SF, et al. Basic local alignment search tool. *Journal of Molecular Biology* 1990.
 - Blighe K, Rana S, Lewis M. EnhancedVolcano: publication-ready volcano plots with enhanced colouring and
   labeling. R/Bioconductor package, version 1.28.2, 2025. doi:10.18129/B9.bioc.EnhancedVolcano
