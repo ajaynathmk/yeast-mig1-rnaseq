@@ -11,6 +11,45 @@ This project is a learning project: every step was first run by hand, checked, a
 script and a workflow rule. The manual checks (strandedness test, investigation of a problem sample) are
 summarised under [Quality control findings](#quality-control-findings).
 
+## Main problem with this analysis: the "replicates" may not be biological replicates
+
+The ENA/GEO records show that each genotype is **one GEO sample, one BioSample and one SRA experiment,
+sequenced in two runs**, not two separately grown cultures:
+
+| Genotype | GEO sample | BioSample | SRA experiment | Runs used |
+|---|---|---|---|---|
+| Wild type (ScY01a) | GSM2796014 | SAMN07711219 | SRX3223640 | `SRR6108775`, `SRR6108776` |
+| *mig1* knockout | GSM2796018 | SAMN07711218 | SRX3223644 | `SRR6108783`, `SRR6108784` |
+
+The ENA protocol text is identical for all four runs. An SRA experiment normally corresponds to one library,
+so the two runs of a strain may be the same material sequenced twice. The paper reports biological duplicates,
+but the database does not show that the two runs of a strain come from independent cultures. If they are
+technical replicates, then:
+
+- DESeq2 treats them as independent biological replicates, so the dispersion estimates are probably too low
+  and the p-values and adjusted p-values too optimistic. The **389 significant genes may be an overcount**.
+- The design effectively has **one wild-type and one knockout biological sample**. The experiment cannot
+  estimate biological variability, and the differential expression result is exploratory, not a statistical
+  conclusion.
+- It fits two observations made in the QC: PC2 separates run 1 from run 2 in both genotypes, and the two
+  knockout runs differ in quality (`SRR6108784` maps poorly). A candidate explanation is a run-to-run
+  difference in library preparation or sequencing batch; this was not tested.
+
+**Unexplained conflict.** The adapter content of the two knockout runs differs (`SRR6108784` has Nextera
+adapters, a shorter insert size and different GC content), which suggests different library preparation. This
+is an inference from adapter sequences, not a stated protocol, and it is hard to reconcile with two runs of
+one SRA experiment. Either different libraries were merged under one accession or the labels are wrong; the
+data cannot tell which.
+
+The "both knockout runs on the same side of both wild-type runs" check used for the 389 genes does not address
+this: it cannot detect that two runs come from the same culture.
+
+Until this is resolved, read every result below with this in mind, and call the two runs of a strain *runs*,
+not replicates. Statements elsewhere in this README that say "biological duplicates" or "replicates" repeat
+the authors' description and have not been verified.
+
+---
+
 ## Report
 
 A written report of the analysis (introduction, methods, results, discussion and limitations) is in
@@ -58,8 +97,8 @@ MIG1 (systematic name `YGL035C`) is the main glucose-repression transcription fa
 experiment has a built-in positive control: MIG1 itself must disappear in the knockout, and known
 glucose-repressed genes should change.
 
-Strain and growth details are taken from the paper's Methods; which culture condition each of the four runs
-belongs to still has to be checked against the GEO sample records.
+Strain and growth details are taken from the paper's Methods. The ENA records show that each genotype is a
+single GEO sample (see the section at the top); whether the two runs are independent cultures is not shown.
 
 The sample sheet is [`metadata/samples.tsv`](metadata/samples.tsv). It was built from the ENA file report for
 the project and contains the download URLs of all FASTQ files.
@@ -294,9 +333,13 @@ signature.
 
 ## Limitations
 
-- **Two replicates per group.** The test has little power, and the results should be read as
-  hypothesis-generating.
-- **Sample SRR6108784** is contaminated and has about half the usable reads of the others (see above). It
+- **The replicates may be technical, not biological** (see the section at the top). Each genotype is one GEO
+  sample, BioSample and SRA experiment. If so, DESeq2 underestimates the variance, the 389 significant genes
+  may be an overcount, and the design is effectively one WT and one KO sample.
+- **Two runs per group.** Even without that problem the test has little power, and the results should be
+  read as hypothesis-generating.
+- **Sample SRR6108784** probably contains fly-derived reads and has about half the usable reads of the others
+  (see above; the BLAST evidence is 10 reads, with the database and date not recorded). It
   agrees with the other knockout sample on every significant gene, but a leave-one-out analysis has not yet
   been done.
 - **The pheromone and mating up-regulation is unexplained.** We found no evidence of a mating-type difference
@@ -307,8 +350,8 @@ signature.
   The culture conditions come from the paper's Methods and have not been matched to the GEO sample records of
   these four runs.
 - **snoRNA and tRNA results** (about 13 genes) are unreliable, since the library type captures them poorly.
-- The authors report biological duplicates (separate cultures) for each strain; this was not checked against
-  the GEO sample records.
+- The authors report biological duplicates (separate cultures) for each strain. The GEO, BioSample and SRA
+  records do not support this (one sample per genotype); see the section at the top.
 - **No external validation.** The results have not been compared with the authors' published gene lists or
   validated by an independent method.
 
@@ -370,7 +413,8 @@ Snakemake's working folders.
 
 - Leave-one-out analysis without `SRR6108784`, and a model with a replicate term, as a sensitivity check.
 - Gene set enrichment on the ranked gene list, and KEGG pathways.
-- Match the four runs to the GEO sample records (condition, replicate) and check the strain background.
+- Resolve the replicate structure (ask the authors or the GEO curators whether the runs are independent
+  cultures, and why the KO runs differ in adapters), and check the strain background.
 
 ---
 
